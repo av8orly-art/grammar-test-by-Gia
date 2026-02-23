@@ -1,3 +1,8 @@
+export enum Level {
+  KET = "KET (初级)",
+  PET = "PET (中级)"
+}
+
 export enum Difficulty {
   Beginner = "初级",
   Intermediate = "中级",
@@ -10,7 +15,10 @@ export enum GrammarPoint {
   NounClause = "名词性从句",
   NonFiniteVerb = "非谓语动词",
   Conjunction = "连词/介词",
-  AbsoluteConstruction = "独立主格"
+  AbsoluteConstruction = "独立主格",
+  Tense = "时态",
+  PassiveVoice = "被动语态",
+  Conditionals = "条件句"
 }
 
 export interface QuestionOption {
@@ -31,41 +39,44 @@ export interface Blank {
 
 export interface Question {
   id: string;
-  sentenceParts: string[]; // Parts of the sentence between blanks
+  level: Level;
+  sentenceParts: string[];
   blanks: Blank[];
   difficulty: Difficulty;
   category: GrammarPoint;
   translation: string;
 }
 
-export const QUESTION_BANK: Question[] = [
+export const KET_QUESTIONS: Question[] = [
   {
-    id: "q1",
-    sentenceParts: ["", " tired, she still finished the report."],
+    id: "k1",
+    level: Level.KET,
+    sentenceParts: ["I went to the park ", " it was sunny."],
     blanks: [
       {
         id: "b1",
-        correctAnswer: "Although",
+        correctAnswer: "because",
         options: [
-          { id: "o1", text: "Because" },
-          { id: "o2", text: "Although" },
-          { id: "o3", text: "Unless" },
-          { id: "o4", text: "If" }
+          { id: "o1", text: "but" },
+          { id: "o2", text: "because" },
+          { id: "o3", text: "so" },
+          { id: "o4", text: "or" }
         ],
         explanation: {
-          rule: "Although 引导让步状语从句，表示“尽管”。句子前后存在转折关系：尽管累，但还是完成了报告。",
-          example: "Although it was raining, they went out for a walk.",
-          commonMistake: "在英语中 although 和 but 不能同时出现在一个句子中。"
+          rule: "because 引导原因状语从句，表示“因为”。去公园的原因是天气晴朗。",
+          example: "I stayed at home because I was tired.",
+          commonMistake: "误用 so，so 表示结果。"
         }
       }
     ],
     difficulty: Difficulty.Beginner,
     category: GrammarPoint.AdverbialClause,
-    translation: "尽管很累，她还是完成了报告。"
+    translation: "因为天气晴朗，我去了公园。"
   },
   {
-    id: "q2",
-    sentenceParts: ["The boy ", " is playing football is my brother."],
+    id: "k2",
+    level: Level.KET,
+    sentenceParts: ["This is the girl ", " lives next door."],
     blanks: [
       {
         id: "b1",
@@ -73,162 +84,223 @@ export const QUESTION_BANK: Question[] = [
         options: [
           { id: "o1", text: "which" },
           { id: "o2", text: "who" },
-          { id: "o3", text: "whose" },
-          { id: "o4", text: "whom" }
+          { id: "o3", text: "where" },
+          { id: "o4", text: "whose" }
         ],
         explanation: {
-          rule: "who 引导定语从句，先行词是人（The boy），且在从句中作主语。",
-          example: "The girl who is singing is my sister.",
-          commonMistake: "先行词为人时，不能用 which。"
+          rule: "who 引导定语从句，指代人（the girl），在从句中作主语。",
+          example: "The man who is talking to my father is a doctor.",
+          commonMistake: "指代人时误用 which。"
         }
       }
     ],
     difficulty: Difficulty.Beginner,
     category: GrammarPoint.RelativeClause,
-    translation: "那个正在踢足球的男孩是我的弟弟。"
+    translation: "这就是住在隔壁的那个女孩。"
   },
   {
-    id: "q3",
-    sentenceParts: ["", " the homework, the student went out to play."],
+    id: "k3",
+    level: Level.KET,
+    sentenceParts: ["She ", " her homework at 8 o'clock last night."],
     blanks: [
       {
         id: "b1",
-        correctAnswer: "Having finished",
+        correctAnswer: "was doing",
         options: [
-          { id: "o1", text: "Finish" },
-          { id: "o2", text: "Finished" },
-          { id: "o3", text: "Finishing" },
-          { id: "o4", text: "Having finished" }
+          { id: "o1", text: "does" },
+          { id: "o2", text: "did" },
+          { id: "o3", text: "was doing" },
+          { id: "o4", text: "is doing" }
         ],
         explanation: {
-          rule: "非谓语动词作时间状语。Having finished 表示动作发生在主句动作（went out）之前，且与主语（the student）是主动关系。",
-          example: "Having seen the movie, I don't want to see it again.",
-          commonMistake: "误用 Finished，Finished 表示被动关系。"
+          rule: "过去进行时表示在过去某一特定时刻正在进行的动作。last night at 8 o'clock 是明确的过去时间点。",
+          example: "I was reading a book when she called.",
+          commonMistake: "误用一般过去时 did，did 强调动作发生过，而 was doing 强调当时正在进行。"
+        }
+      }
+    ],
+    difficulty: Difficulty.Intermediate,
+    category: GrammarPoint.Tense,
+    translation: "昨晚八点她正在做作业。"
+  },
+  {
+    id: "k4",
+    level: Level.KET,
+    sentenceParts: ["There ", " some milk in the fridge."],
+    blanks: [
+      {
+        id: "b1",
+        correctAnswer: "is",
+        options: [
+          { id: "o1", text: "is" },
+          { id: "o2", text: "are" },
+          { id: "o3", text: "be" },
+          { id: "o4", text: "have" }
+        ],
+        explanation: {
+          rule: "There be 句型遵循“就近原则”。milk 是不可数名词，谓语动词用单数 is。",
+          example: "There is some water in the bottle.",
+          commonMistake: "误认为 milk 是复数而用 are。"
+        }
+      }
+    ],
+    difficulty: Difficulty.Beginner,
+    category: GrammarPoint.Conjunction,
+    translation: "冰箱里有一些牛奶。"
+  },
+  {
+    id: "k5",
+    level: Level.KET,
+    sentenceParts: ["He is ", " than his brother."],
+    blanks: [
+      {
+        id: "b1",
+        correctAnswer: "taller",
+        options: [
+          { id: "o1", text: "tall" },
+          { id: "o2", text: "taller" },
+          { id: "o3", text: "tallest" },
+          { id: "o4", text: "more tall" }
+        ],
+        explanation: {
+          rule: "形容词比较级。than 是比较级的标志词，tall 的比较级是 taller。",
+          example: "This apple is bigger than that one.",
+          commonMistake: "误用最高级 tallest 或错误的比较级形式 more tall。"
+        }
+      }
+    ],
+    difficulty: Difficulty.Beginner,
+    category: GrammarPoint.Conjunction,
+    translation: "他比他的哥哥高。"
+  }
+];
+
+export const PET_QUESTIONS: Question[] = [
+  {
+    id: "p1",
+    level: Level.PET,
+    sentenceParts: ["If I ", " you, I would take the job."],
+    blanks: [
+      {
+        id: "b1",
+        correctAnswer: "were",
+        options: [
+          { id: "o1", text: "am" },
+          { id: "o2", text: "was" },
+          { id: "o3", text: "were" },
+          { id: "o4", text: "be" }
+        ],
+        explanation: {
+          rule: "虚拟语气（Second Conditional），表示与现在事实相反的假设。在 if 引导的虚拟语气中，be 动词通常统一用 were。",
+          example: "If I had wings, I would fly to you.",
+          commonMistake: "误用 am 或 was。虽然口语中有用 was 的情况，但在标准考试中应选 were。"
+        }
+      }
+    ],
+    difficulty: Difficulty.Intermediate,
+    category: GrammarPoint.Conditionals,
+    translation: "如果我是你，我就接受那份工作。"
+  },
+  {
+    id: "p2",
+    level: Level.PET,
+    sentenceParts: ["The bridge ", " in 1990."],
+    blanks: [
+      {
+        id: "b1",
+        correctAnswer: "was built",
+        options: [
+          { id: "o1", text: "built" },
+          { id: "o2", text: "was built" },
+          { id: "o3", text: "has built" },
+          { id: "o4", text: "is built" }
+        ],
+        explanation: {
+          rule: "被动语态的一般过去时。主语 bridge 是动作 build 的承受者，且时间状语 in 1990 表示过去。",
+          example: "This book was written by Lu Xun.",
+          commonMistake: "误用主动语态 built。"
+        }
+      }
+    ],
+    difficulty: Difficulty.Beginner,
+    category: GrammarPoint.PassiveVoice,
+    translation: "这座桥建于1990年。"
+  },
+  {
+    id: "p3",
+    level: Level.PET,
+    sentenceParts: ["I'm looking forward to ", " you soon."],
+    blanks: [
+      {
+        id: "b1",
+        correctAnswer: "seeing",
+        options: [
+          { id: "o1", text: "see" },
+          { id: "o2", text: "seeing" },
+          { id: "o3", text: "saw" },
+          { id: "o4", text: "to see" }
+        ],
+        explanation: {
+          rule: "look forward to 中的 to 是介词，后面必须接动名词（V-ing）或名词。",
+          example: "I look forward to hearing from you.",
+          commonMistake: "误认为 to 是不定式符号而接动词原形 see。"
         }
       }
     ],
     difficulty: Difficulty.Intermediate,
     category: GrammarPoint.NonFiniteVerb,
-    translation: "做完作业后，那个学生出去玩了。"
+    translation: "我期待很快见到你。"
   },
   {
-    id: "q4",
-    sentenceParts: ["I don't know ", " he will come back tomorrow."],
+    id: "p4",
+    level: Level.PET,
+    sentenceParts: ["He asked me ", " I had finished my work."],
     blanks: [
       {
         id: "b1",
-        correctAnswer: "whether",
+        correctAnswer: "if",
         options: [
           { id: "o1", text: "that" },
-          { id: "o2", text: "whether" },
+          { id: "o2", text: "if" },
           { id: "o3", text: "what" },
           { id: "o4", text: "which" }
         ],
         explanation: {
-          rule: "whether 引导宾语从句，表示“是否”。这里表示不确定他明天是否会回来。",
-          example: "I wonder whether it will rain tomorrow.",
-          commonMistake: "that 引导宾语从句时通常表示一个确定的事实。"
-        }
-      }
-    ],
-    difficulty: Difficulty.Beginner,
-    category: GrammarPoint.NounClause,
-    translation: "我不知道他明天是否会回来。"
-  },
-  {
-    id: "q5",
-    sentenceParts: ["The news ", " our team won the game excited everyone."],
-    blanks: [
-      {
-        id: "b1",
-        correctAnswer: "that",
-        options: [
-          { id: "o1", text: "which" },
-          { id: "o2", text: "that" },
-          { id: "o3", text: "what" },
-          { id: "o4", text: "who" }
-        ],
-        explanation: {
-          rule: "that 引导同位语从句，解释说明 news 的具体内容。that 在从句中不作成分，仅起连接作用。",
-          example: "The fact that he failed the exam surprised us.",
-          commonMistake: "误用 which，which 在定语从句中需作主语或宾语，而这里从句成分完整。"
+          rule: "宾语从句。在间接引语中，由一般疑问句转化而来的从句用 if 或 whether 引导，表示“是否”。",
+          example: "She asked if I liked coffee.",
+          commonMistake: "误用 that。that 引导陈述句转化的宾语从句。"
         }
       }
     ],
     difficulty: Difficulty.Intermediate,
     category: GrammarPoint.NounClause,
-    translation: "我们队赢了比赛的消息让每个人都很兴奋。"
+    translation: "他问我是否已经完成了工作。"
   },
   {
-    id: "q6",
-    sentenceParts: ["", " by the teacher, the student felt very happy."],
+    id: "p5",
+    level: Level.PET,
+    sentenceParts: ["By the time he arrived, the train ", "."],
     blanks: [
       {
         id: "b1",
-        correctAnswer: "Praised",
+        correctAnswer: "had left",
         options: [
-          { id: "o1", text: "Praising" },
-          { id: "o2", text: "Praised" },
-          { id: "o3", text: "To praise" },
-          { id: "o4", text: "Having praised" }
+          { id: "o1", text: "left" },
+          { id: "o2", text: "has left" },
+          { id: "o3", text: "had left" },
+          { id: "o4", text: "was leaving" }
         ],
         explanation: {
-          rule: "过去分词作状语，表示被动关系。学生是被老师表扬（be praised by teacher）。",
-          example: "Seen from the hill, the city looks beautiful.",
-          commonMistake: "误用 Praising，Praising 表示主动关系。"
-        }
-      }
-    ],
-    difficulty: Difficulty.Intermediate,
-    category: GrammarPoint.NonFiniteVerb,
-    translation: "受到老师的表扬，那个学生感到很高兴。"
-  },
-  {
-    id: "q7",
-    sentenceParts: ["This is the place ", " I visited last year."],
-    blanks: [
-      {
-        id: "b1",
-        correctAnswer: "which",
-        options: [
-          { id: "o1", text: "where" },
-          { id: "o2", text: "which" },
-          { id: "o3", text: "when" },
-          { id: "o4", text: "what" }
-        ],
-        explanation: {
-          rule: "which 引导定语从句，先行词是 place，在从句中作 visited 的宾语。",
-          example: "The book which I bought is interesting.",
-          commonMistake: "误用 where。虽然先行词是地点，但从句中缺少宾语，应使用关系代词 which/that 而非关系副词 where。"
-        }
-      }
-    ],
-    difficulty: Difficulty.Intermediate,
-    category: GrammarPoint.RelativeClause,
-    translation: "这就是我去年参观过的地方。"
-  },
-  {
-    id: "q8",
-    sentenceParts: ["", " weather permitting, we will go for a picnic."],
-    blanks: [
-      {
-        id: "b1",
-        correctAnswer: "With",
-        options: [
-          { id: "o1", text: "If" },
-          { id: "o2", text: "With" },
-          { id: "o3", text: "Because" },
-          { id: "o4", text: "Although" }
-        ],
-        explanation: {
-          rule: "独立主格结构（Absolute Construction）。weather permitting 是名词+现在分词构成的独立结构，表示条件。",
-          example: "Time permitting, I'll visit you.",
-          commonMistake: "误用 If。如果用 If，句子应为 If weather permits..."
+          rule: "过去完成时。表示在过去某一动作（arrived）之前已经完成的动作（left）。即“过去的过去”。",
+          example: "When I got to the cinema, the film had already started.",
+          commonMistake: "误用一般过去时 left。"
         }
       }
     ],
     difficulty: Difficulty.Advanced,
-    category: GrammarPoint.AbsoluteConstruction,
-    translation: "如果天气允许，我们将去野餐。"
+    category: GrammarPoint.Tense,
+    translation: "在他到达之前，火车已经开了。"
   }
 ];
+
+export const QUESTION_BANK: Question[] = [...KET_QUESTIONS, ...PET_QUESTIONS];

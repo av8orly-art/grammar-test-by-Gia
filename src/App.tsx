@@ -20,7 +20,10 @@ import {
   QUESTION_BANK, 
   Question, 
   Difficulty, 
-  GrammarPoint 
+  GrammarPoint,
+  Level,
+  KET_QUESTIONS,
+  PET_QUESTIONS
 } from './types.ts';
 
 // --- Components ---
@@ -45,15 +48,44 @@ const CategoryBadge = ({ category }: { category: GrammarPoint }) => (
 );
 
 export default function App() {
+  const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [score, setScore] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [activeExplanation, setActiveExplanation] = useState<number | null>(null);
+  
+  // 错题追踪
+  const [wrongQuestionIds, setWrongQuestionIds] = useState<string[]>([]);
+  const [isRedoMode, setIsRedoMode] = useState(false);
+  const [isReviewMode, setIsReviewMode] = useState(false);
 
-  const currentQuestion = QUESTION_BANK[currentIndex];
-  const totalQuestions = QUESTION_BANK.length;
+  const questions = useMemo(() => {
+    if (isRedoMode || isReviewMode) {
+      return QUESTION_BANK.filter(q => wrongQuestionIds.includes(q.id));
+    }
+    
+    let baseQuestions: Question[] = [];
+    if (selectedLevel === Level.KET) baseQuestions = KET_QUESTIONS;
+    if (selectedLevel === Level.PET) baseQuestions = PET_QUESTIONS;
+    
+    // 限制题目数量 (KET 20题, PET 40题)
+    const count = selectedLevel === Level.KET ? 20 : 40;
+    return baseQuestions.slice(0, count);
+  }, [selectedLevel, isRedoMode, isReviewMode, wrongQuestionIds]);
+
+  const currentQuestion = questions[currentIndex];
+  const totalQuestions = questions.length;
+
+  const encouragement = useMemo(() => {
+    if (totalQuestions === 0) return "";
+    const ratio = score / totalQuestions;
+    if (ratio === 1) return "完美！你已经掌握了这些复杂的语法结构！";
+    if (ratio >= 0.8) return "太棒了！你的语法基础非常扎实。";
+    if (ratio >= 0.6) return "做得不错！再接再厉，你会更上一层楼。";
+    return "加油！多看解析，掌握这些规则并不难。";
+  }, [score, totalQuestions, showResults]);
 
   const handleOptionSelect = (blankId: string, optionText: string) => {
     if (isSubmitted) return;
@@ -63,15 +95,19 @@ export default function App() {
   const handleSubmit = () => {
     if (isSubmitted) return;
 
-    let correctCount = 0;
+    let isCorrect = true;
     currentQuestion.blanks.forEach(blank => {
-      if (userAnswers[blank.id] === blank.correctAnswer) {
-        correctCount++;
+      if (userAnswers[blank.id] !== blank.correctAnswer) {
+        isCorrect = false;
       }
     });
 
-    if (correctCount === currentQuestion.blanks.length) {
+    if (isCorrect) {
       setScore(prev => prev + 1);
+    } else {
+      if (!wrongQuestionIds.includes(currentQuestion.id)) {
+        setWrongQuestionIds(prev => [...prev, currentQuestion.id]);
+      }
     }
     setIsSubmitted(true);
   };
@@ -88,23 +124,84 @@ export default function App() {
   };
 
   const handleRestart = () => {
+    setSelectedLevel(null);
     setCurrentIndex(0);
     setUserAnswers({});
     setIsSubmitted(false);
     setScore(0);
     setShowResults(false);
     setActiveExplanation(null);
+    setIsRedoMode(false);
+    setIsReviewMode(false);
   };
 
-  const progress = ((currentIndex + 1) / totalQuestions) * 100;
+  const startRedo = () => {
+    setCurrentIndex(0);
+    setUserAnswers({});
+    setIsSubmitted(false);
+    setScore(0);
+    setShowResults(false);
+    setActiveExplanation(null);
+    setIsRedoMode(true);
+    setIsReviewMode(false);
+  };
 
-  const encouragement = useMemo(() => {
-    const ratio = score / totalQuestions;
-    if (ratio === 1) return "完美！你已经掌握了这些复杂的语法结构！";
-    if (ratio >= 0.8) return "太棒了！你的语法基础非常扎实。";
-    if (ratio >= 0.6) return "做得不错！再接再厉，你会更上一层楼。";
-    return "加油！多看解析，掌握这些规则并不难。";
-  }, [score, totalQuestions, showResults]);
+  const startReview = () => {
+    setCurrentIndex(0);
+    setIsSubmitted(true);
+    setShowResults(false);
+    setActiveExplanation(0);
+    setIsRedoMode(false);
+    setIsReviewMode(true);
+  };
+
+  // 在回顾模式下自动填充正确答案
+  React.useEffect(() => {
+    if (isReviewMode && currentQuestion) {
+      const reviewAnswers: Record<string, string> = {};
+      currentQuestion.blanks.forEach(b => {
+        reviewAnswers[b.id] = b.correctAnswer;
+      });
+      setUserAnswers(reviewAnswers);
+    }
+  }, [currentIndex, isReviewMode, currentQuestion]);
+
+  if (!selectedLevel && !isRedoMode && !isReviewMode) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center p-4 font-sans">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full border border-slate-100"
+        >
+          <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6">
+            <GraduationCap className="w-8 h-8 text-indigo-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">选择题库级别</h2>
+          <p className="text-slate-500 mb-8">请根据你的学习目标选择适合的语法练习级别。</p>
+          
+          <div className="space-y-4">
+            <button 
+              onClick={() => setSelectedLevel(Level.KET)}
+              className="w-full p-6 bg-white border-2 border-slate-100 rounded-2xl text-left hover:border-indigo-500 hover:bg-indigo-50 transition-all group"
+            >
+              <h3 className="text-lg font-bold text-slate-900 group-hover:text-indigo-700">KET (初级)</h3>
+              <p className="text-sm text-slate-500">适合初学者，涵盖基础时态、简单从句和常用连词。</p>
+            </button>
+            <button 
+              onClick={() => setSelectedLevel(Level.PET)}
+              className="w-full p-6 bg-white border-2 border-slate-100 rounded-2xl text-left hover:border-indigo-500 hover:bg-indigo-50 transition-all group"
+            >
+              <h3 className="text-lg font-bold text-slate-900 group-hover:text-indigo-700">PET (中级)</h3>
+              <p className="text-sm text-slate-500">适合有一定基础的学生，包含虚拟语气、被动语态和复杂从句。</p>
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  const progress = ((currentIndex + 1) / totalQuestions) * 100;
 
   if (showResults) {
     return (
@@ -125,19 +222,27 @@ export default function App() {
             {encouragement}
           </p>
           
-          <div className="space-y-3 mb-8">
-            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">推荐复习</h3>
-            <div className="grid grid-cols-1 gap-2">
-              <a href="#" className="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors group">
-                <span className="text-sm font-medium text-slate-700">非谓语动词深度解析</span>
-                <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-indigo-500" />
-              </a>
-              <a href="#" className="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors group">
-                <span className="text-sm font-medium text-slate-700">复合句连接词辨析手册</span>
-                <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-indigo-500" />
-              </a>
+          {wrongQuestionIds.length > 0 && (
+            <div className="space-y-3 mb-8">
+              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">错题集管理</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <button 
+                  onClick={startReview}
+                  className="flex items-center justify-center gap-2 p-3 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-colors font-bold text-sm"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  查看错题解析
+                </button>
+                <button 
+                  onClick={startRedo}
+                  className="flex items-center justify-center gap-2 p-3 bg-amber-50 text-amber-600 rounded-xl hover:bg-amber-100 transition-colors font-bold text-sm"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  重做错题
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           <button 
             onClick={handleRestart}
@@ -162,7 +267,12 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-slate-900 leading-none">GrammarMaster</h1>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Junior High Edition</p>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Junior High Edition</p>
+                <span className="text-[10px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-bold">
+                  {isRedoMode ? "重做模式" : isReviewMode ? "错题回顾" : selectedLevel}
+                </span>
+              </div>
             </div>
           </div>
           <div className="flex flex-col items-end">
